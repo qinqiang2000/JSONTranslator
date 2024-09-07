@@ -68,7 +68,7 @@ def translate_json(data, log_placeholder=None):
             ret = translate_text(data)
             if log_placeholder:
                 log_placeholder.markdown(f"```Source```：{data}<br>```Translated``` ：{ret}",  unsafe_allow_html=True)
-                logging.info(f"Source：{data}\nTranslated ：{ret}")
+            print(f"Source：{data}\nTranslated ：{ret}")
             return ret
     return data
 
