@@ -4,16 +4,36 @@ from dotenv import load_dotenv
 import streamlit as st
 from io import StringIO
 from groq import Groq
+from openai.lib.azure import AzureOpenAI
 
 load_dotenv(override=True)
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"), )
+
+provider = os.environ.get("LLM_PROVIDER")
+if provider == "azure":
+    client = AzureOpenAI(
+        api_key=os.environ['AZURE_OPENAI_GPT4oMINI_API_KEY'],
+        api_version=os.environ['OPENAI_API_GPT4oMINI_VERSION'],
+        azure_endpoint=os.environ['AZURE_OPENAI_GPT4oMINI_ENDPOINT']
+    )
+    model = os.environ['OPENAI_GPT4OMIN_DEPLOYMENT_NAME']
+else:
+    client = Groq(api_key=os.environ.get("GROQ_API_KEY"), )
+    model = "llama-3.1-70b-versatile"
 
 
 # 假设这个函数已经实现了，将中文翻译为英文
 def translate_text(text):
-    sys_prompt = "将所给的文本中的中文，翻译成英文。要求：1）不要改动非中文以外的任何符号；2）只返回翻译结果，不要包含其他内容"
+    sys_prompt = """将所给的文本中的中文，翻译成英文。
+    注意：1）文本中的‘票’，默认是指‘发票’ 
+    2）红票或红字发票: credit invoice 
+    3）蓝票或蓝字发票: invoice 
+    4）开票项: invoicing item
+    5）数电票: fully digitized e-invoice
+    6）专票或增值税专用发票: Special VAT Invoice
+    7）普票或增值税普通发票: Normal VAT Invoice
+    输出要求：1）不要改动非中文以外的任何符号；2）只返回翻译结果，不要包含其他内容"""
     completion = client.chat.completions.create(
-        model="llama-3.1-70b-versatile",
+        model=model,
         messages=[
             {
                 "role": "system",
@@ -47,6 +67,7 @@ def translate_json(data, log_placeholder=None):
             ret = translate_text(data)
             if log_placeholder:
                 log_placeholder.markdown(f"```Source```：{data}<br>```Translated``` ：{ret}",  unsafe_allow_html=True)
+                print(f"Source：{data}\nTranslated ：{ret}")
             return ret
     return data
 
