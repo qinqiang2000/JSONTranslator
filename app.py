@@ -7,6 +7,9 @@ from io import StringIO
 from groq import Groq
 from openai.lib.azure import AzureOpenAI
 
+# 配置日志
+logging.basicConfig(format='[%(asctime)s %(filename)s:%(lineno)d] %(levelname)s: %(message)s', level=logging.INFO, force=True)
+
 load_dotenv(override=True)
 
 provider = os.environ.get("LLM_PROVIDER")
@@ -68,7 +71,7 @@ def translate_json(data, log_placeholder=None):
             ret = translate_text(data)
             if log_placeholder:
                 log_placeholder.markdown(f"```Source```：{data}<br>```Translated``` ：{ret}",  unsafe_allow_html=True)
-            print(f"Source：{data}\nTranslated ：{ret}")
+            logging.info(f"Source：{data}\nTranslated ：{ret}")
             return ret
     return data
 
