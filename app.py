@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from dotenv import load_dotenv
 import streamlit as st
@@ -67,7 +68,7 @@ def translate_json(data, log_placeholder=None):
             ret = translate_text(data)
             if log_placeholder:
                 log_placeholder.markdown(f"```Source```：{data}<br>```Translated``` ：{ret}",  unsafe_allow_html=True)
-                print(f"Source：{data}\nTranslated ：{ret}")
+                logging.info(f"Source：{data}\nTranslated ：{ret}")
             return ret
     return data
 
