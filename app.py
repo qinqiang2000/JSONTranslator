@@ -143,8 +143,13 @@ def translate_and_save_json(json_file, log_placeholder):
 
 # Streamlit界面
 def main():
+    global sys_prompt  # 声明使用全局变量
+
     st.title("JSON Translator")
     st.write("上传一个包含中文的JSON文件，系统将其中文部分翻译为英文。")
+
+    # 用户可以编辑sys_prompt的部分
+    sys_prompt = st.text_area("提示词（可在此维护自定义术语）", sys_prompt, height=300)
 
     # 上传文件的部分
     uploaded_file = st.file_uploader("选择一个JSON文件", type="json")
