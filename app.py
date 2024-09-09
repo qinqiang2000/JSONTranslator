@@ -57,7 +57,8 @@ def translate_text(text_list, batch_size=30, log_placeholder=None):
         # 分割翻译结果并添加到列表
         translated_batch = completion.choices[0].message.content.split(split_tag)
 
-        # print(f"[英文]: {len(translated_batch)} \n{translated_batch} {completion.choices[0].message.content} \n ")
+        print(f"[中文 {len(batch)} \n{batch}\n")
+        print(f"[英文]: {len(translated_batch)} \n{translated_batch}\n")
         if len(batch) != len(translated_batch):
             if log_placeholder:
                 log_placeholder.warning(f"==========错误===============\n"
@@ -73,6 +74,7 @@ def translate_text(text_list, batch_size=30, log_placeholder=None):
 
 # 递归遍历 JSON，批量收集需要翻译的文本
 def collect_translations(data, translations, translated_data, log_placeholder=None):
+    translated_data = data
     if isinstance(data, dict):
         for key, value in data.items():
             translated_data[key] = collect_translations(value, translations, {}, log_placeholder)
