@@ -7,7 +7,7 @@
 *.docx
 *.doc
 .env
-
+.DS_Store
 output.json
 
 # 忽略目标目录  
@@ -17,6 +17,7 @@ venv/
 .venv/
 dist/
 build/
+tmp/
 
 # 忽略Python编译文件  
 *.pyc  
@@ -40,3 +41,4 @@ build/
 *.xlsm.backup
 
 keys.txt
+single-file

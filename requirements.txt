@@ -2,3 +2,4 @@ python-dotenv
 streamlit
 openai
 groq
+beautifulsoup4
