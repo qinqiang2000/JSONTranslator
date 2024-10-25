@@ -402,7 +402,7 @@ def run_single_file_script(output_directory, url):
         url,
         '--filename-template={url-last-segment}.html',
         '--crawl-replace-URLs=true',
-        # '--crawl-links=true',
+        '--crawl-links=true',
         '--filename-conflict-action=skip',
         '--crawl-max-depth=3',
         f'--output-directory={output_directory}',
