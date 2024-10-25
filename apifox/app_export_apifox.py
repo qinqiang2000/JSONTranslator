@@ -24,7 +24,7 @@ def load_json(json_file):
     tmp_dir = 'tmp'
     os.makedirs(tmp_dir, exist_ok=True)  # 确保目录存在
 
-    file_path = os.path.join(tmp_dir, f'{json_file.name.split('.')[0]}.json')
+    file_path = os.path.join(tmp_dir, json_file.name)
 
     # 将上传的文件保存到指定路径
     with open(file_path, 'wb') as f:
