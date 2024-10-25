@@ -5,6 +5,8 @@ import json
 import shutil
 import subprocess
 import re
+import threading
+import time
 from datetime import datetime
 from bs4 import BeautifulSoup
 import os
@@ -143,8 +145,9 @@ def insert_enum_table(filename, api_schema, soup):
     container_div = soup.find('div', class_='pui-pages-shared-doc-http-api-index-container w-full')
 
     if not container_div:
-        raise ValueError(
-            "Could not find the container div with class 'pui-pages-shared-doc-http-api-index-container w-full'")
+        print(f"{filename}: Could not find the container div with class "
+              f"'pui-pages-shared-doc-http-api-index-container w-full'")
+        return
 
     # 4. 在该 div 内找到最后一个 class="group-content" 的子 div
     group_content_divs = container_div.find_all('div', class_='group-content')
@@ -390,9 +393,32 @@ def process_directory(directory, data_schema_path, keywords=['piaozone']):
             print(f'Processed: {file_path}')
 
 
+# 定义一个全局标志用于停止后台任务
+stop_checking = False
+
+
+def check_output_directory(directory, log_function=None):
+    """后台任务，定时检查output_directory的文件个数"""
+    while not stop_checking:
+        try:
+            # 获取文件个数
+            num_files = len([f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))])
+            print(f"当前目录 {directory} 中的文件个数: {num_files}")
+            if log_function:
+                log_function(f"已导出网页个数: {num_files}")
+        except FileNotFoundError:
+            print(f"目录 {directory} 不存在。")
+        time.sleep(5)  # 每隔5秒检查一次
+
+
 # 导出url对应的站点
-def run_single_file_script(output_directory, url):
-    # 定义脚本和用户脚本的路径
+def run_single_file_script(output_directory, url, log_function=None):
+    global stop_checking
+    # 启动后台定时任务
+    stop_checking = False
+    check_thread = threading.Thread(target=check_output_directory, args=(output_directory, log_function))
+    check_thread.start()
+
     script_path = os.path.join('script', 'single-file')
     user_script_path = os.path.join('script', 'userScript.js')
 
@@ -419,6 +445,10 @@ def run_single_file_script(output_directory, url):
         print(e.stderr)  # 打印标准错误输出
     except Exception as e:
         print(f"发生错误: {e}")
+    finally:
+        # 停止后台定时任务
+        stop_checking = True
+        check_thread.join()  # 等待线程结束
 
 
 def backup_data(src, dest):
@@ -450,7 +480,7 @@ def export_apifox(url, apifox_data_path, log_function=None):
     # 先用single-file导出整站
     if log_function:
         log_function(f"正在导出站点: {url}")
-    run_single_file_script(output_directory, url)
+    run_single_file_script(output_directory, url, log_function)
     print(f"已完成single-file导出到: {output_directory}")
 
     # 备份原始数据

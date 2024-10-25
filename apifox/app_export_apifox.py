@@ -43,13 +43,14 @@ def save_json_to_stringio(data):
     return json_str
 
 
-def do_export(url, json_file, log_placeholder):
+def show_status(text):
+    if "log_placeholder" in st.session_state:
+        st.session_state["log_placeholder"].markdown(text, unsafe_allow_html=True)
+
+
+def do_export(url, json_file):
     file_path = load_json(json_file)
-
-    def show_status(text):
-        log_placeholder.markdown(f"{text}", unsafe_allow_html=True)
-
-    return export_apifox(url, file_path)
+    return export_apifox(url, file_path, show_status)
 
 
 # Streamlit界面
@@ -69,11 +70,11 @@ def main_page():
         st.write(f"已上传文件: {uploaded_file.name}")
 
         # 日志占位符，实时更新日志
-        log_placeholder = st.empty()
+        st.session_state["log_placeholder"] = st.empty()
 
         # 翻译并生成可以下载的JSON
         with st.spinner('正在导出,可能需几分钟到10分钟不等...'):
-            zip_path = do_export(site_url, uploaded_file, log_placeholder)
+            zip_path = do_export(site_url, uploaded_file)
 
         st.success('导出完成！')
 
