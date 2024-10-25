@@ -1,11 +1,17 @@
 import json
 import logging
 import os
-from dotenv import load_dotenv
+import time
+
 import streamlit as st
 import threading
-
+from typing import Callable
+import queue
+from streamlit.runtime.scriptrunner import add_script_run_ctx
 from singlefile_apifox import export_apifox
+
+# 创建队列，用于线程间通信
+q = queue.Queue()
 
 # 设置你的密码
 PASSWORD = "fpy2024"
@@ -43,9 +49,21 @@ def save_json_to_stringio(data):
     return json_str
 
 
+def show_status_background_thread():
+    print("【进入线程】show_status_background_thread")
+    while True:
+        item = q.get()  # 获取队列中的数据
+        print(f"获取: {item}")
+        if item is None or item == 'done':  # 结束信号
+            break
+        if "log_placeholder" in st.session_state:
+            st.session_state["log_placeholder"].markdown(item, unsafe_allow_html=True)
+    print("【退出线程】show_status_background_thread")
+
+
 def show_status(text):
-    if "log_placeholder" in st.session_state:
-        st.session_state["log_placeholder"].markdown(text, unsafe_allow_html=True)
+    global q
+    q.put(text)
 
 
 def do_export(url, json_file):
@@ -66,17 +84,17 @@ def main_page():
 
     # 如果有上传文件，开始处理
     if uploaded_file is not None:
-        # 显示文件名
-        st.write(f"已上传文件: {uploaded_file.name}")
-
         # 日志占位符，实时更新日志
         st.session_state["log_placeholder"] = st.empty()
+
+        setup_tasks([show_status_background_thread])
 
         # 翻译并生成可以下载的JSON
         with st.spinner('正在导出,可能需几分钟到10分钟不等...'):
             zip_path = do_export(site_url, uploaded_file)
 
         st.success('导出完成！')
+        show_status('done')
 
         with open(zip_path, "rb") as f:
             st.download_button(
@@ -86,6 +104,13 @@ def main_page():
                 mime="application/zip",
                 on_click=lambda: setattr(st.session_state, 'authenticated', False)  # 点击后设置下载状态
             )
+
+
+def setup_tasks(funcs: list[Callable]):
+    threads = [threading.Thread(target=func) for func in funcs]
+    for thread in threads:
+        add_script_run_ctx(thread)
+        thread.start()
 
 
 # 创建密码输入框
@@ -106,3 +131,4 @@ if __name__ == "__main__":
         main_page()
     else:
         login()
+

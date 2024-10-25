@@ -448,7 +448,6 @@ def run_single_file_script(output_directory, url, log_function=None):
     finally:
         # 停止后台定时任务
         stop_checking = True
-        check_thread.join()  # 等待线程结束
 
 
 def backup_data(src, dest):
