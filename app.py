@@ -20,6 +20,10 @@ if provider == "azure":
         azure_endpoint=os.environ['AZURE_OPENAI_GPT4oMINI_ENDPOINT']
     )
     model = os.environ['OPENAI_GPT4OMIN_DEPLOYMENT_NAME']
+elif provider == "openai":
+    from openai import OpenAI
+    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    model = "gpt-4o-mini"
 else:
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"), )
     model = "llama-3.1-70b-versatile"
